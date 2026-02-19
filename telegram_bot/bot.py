@@ -453,18 +453,10 @@ def main() -> None:
         raise RuntimeError("TELEGRAM_BOT_TOKEN env var is not set")
     if not config.BOT_MASTER_KEY:
         raise RuntimeError("BOT_MASTER_KEY env var is not set")
-    if not config.FEE_RECIPIENT_ADDRESS:
-        raise RuntimeError(
-            "FEE_RECIPIENT_ADDRESS env var is not set.\n"
-            f"Owner treasury: {config.TREASURY_WALLET_ID}\n"
-            "Set FEE_RECIPIENT_ADDRESS to the corresponding Base EVM (0x…) address."
-        )
     if not Web3.is_address(config.FEE_RECIPIENT_ADDRESS):
         raise RuntimeError(
             f"FEE_RECIPIENT_ADDRESS '{config.FEE_RECIPIENT_ADDRESS}' is not a valid "
-            "Base/EVM address (must be a 0x-prefixed hex address, e.g. 0xABC…123).\n"
-            f"Owner treasury identifier: {config.TREASURY_WALLET_ID}\n"
-            "Set FEE_RECIPIENT_ADDRESS to the corresponding Base EVM (0x…) address."
+            "Base/EVM address (must be a 0x-prefixed hex address)."
         )
 
     storage.init_db()

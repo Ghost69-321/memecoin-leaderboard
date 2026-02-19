@@ -5,12 +5,10 @@ Required env vars:
   TELEGRAM_BOT_TOKEN       – Token from @BotFather
   BOT_MASTER_KEY           – Random secret (≥32 chars) used to derive per-user
                              encryption keys for stored private keys
-  FEE_RECIPIENT_ADDRESS    – Base (EVM) 0x address that receives the 1% fee.
-                             Must be a valid EVM address (0x-prefixed hex).
-                             Owner treasury: CfyjfkdfVchdvtKyPbBxBoScfSUPBVMwnGbYeXBs5uKw
-                             Set this to the corresponding Base EVM address.
 
 Optional env vars:
+  FEE_RECIPIENT_ADDRESS    – Base (EVM) 0x address that receives the 1% fee.
+                             Defaults to the owner's treasury address below.
   BASE_RPC_URL             – defaults to the public Base mainnet endpoint
   DATABASE_PATH            – defaults to ./bot_data.db
 """
@@ -24,13 +22,14 @@ TELEGRAM_BOT_TOKEN: str = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 BOT_MASTER_KEY: str = os.environ.get("BOT_MASTER_KEY", "")
 
 # ── Fee ───────────────────────────────────────────────────────────────────────
-# Owner's treasury identifier (Solana/cross-chain reference).
-# The 1% fee is sent on the Base EVM chain, so FEE_RECIPIENT_ADDRESS must
-# be the corresponding Base EVM (0x-prefixed) address for this treasury.
+# Owner's treasury wallet on Base (EVM).  All 1% fees are sent here.
+# Can be overridden with the FEE_RECIPIENT_ADDRESS env var.
 TREASURY_WALLET_ID: str = "CfyjfkdfVchdvtKyPbBxBoScfSUPBVMwnGbYeXBs5uKw"
+TREASURY_EVM_ADDRESS: str = "0x5D47D3388504824408dBf8943fd6711fEF3cBEfe"
 
-# Set FEE_RECIPIENT_ADDRESS to your Base EVM wallet address.
-FEE_RECIPIENT_ADDRESS: str = os.environ.get("FEE_RECIPIENT_ADDRESS", "")
+FEE_RECIPIENT_ADDRESS: str = os.environ.get(
+    "FEE_RECIPIENT_ADDRESS", TREASURY_EVM_ADDRESS
+)
 FEE_PERCENT: float = 0.01  # 1%
 
 # ── Base network ──────────────────────────────────────────────────────────────

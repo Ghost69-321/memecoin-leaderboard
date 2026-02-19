@@ -47,21 +47,17 @@ Create a `.env` file (or export them in your shell):
 TELEGRAM_BOT_TOKEN=7123456789:AAFxxxx
 BOT_MASTER_KEY=a-long-random-secret-key-at-least-32-chars
 
-# 1% fee treasury – MUST be a Base EVM address (0x-prefixed hex)
-# Owner treasury identifier: CfyjfkdfVchdvtKyPbBxBoScfSUPBVMwnGbYeXBs5uKw
-# Set this to the corresponding Base-network EVM wallet address:
-FEE_RECIPIENT_ADDRESS=0xYourBaseEVMAddressHere
+# Optional – defaults to the owner's treasury address below
+# FEE_RECIPIENT_ADDRESS=0x5D47D3388504824408dBf8943fd6711fEF3cBEfe
 
 # Optional (shown with defaults)
 BASE_RPC_URL=https://mainnet.base.org
 DATABASE_PATH=bot_data.db
 ```
 
-> **Fee address**: The owner's treasury is identified by
-> `CfyjfkdfVchdvtKyPbBxBoScfSUPBVMwnGbYeXBs5uKw`.  Since the bot sends
-> fees on the **Base EVM network**, `FEE_RECIPIENT_ADDRESS` must be a
-> `0x`-prefixed EVM address.  The bot validates this at startup and will
-> print an actionable error if the value is missing or in the wrong format.
+> **Fee address**: All 1% fees default to the owner's treasury wallet
+> `0x5D47D3388504824408dBf8943fd6711fEF3cBEfe` on Base.
+> Override with the `FEE_RECIPIENT_ADDRESS` env var if needed.
 
 > **Security note**: `BOT_MASTER_KEY` is used to derive per-user encryption
 > keys for stored private keys.  Choose a high-entropy random string and keep
