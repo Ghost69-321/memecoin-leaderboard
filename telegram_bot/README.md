@@ -22,19 +22,49 @@ are covered by the user's deposited ETH.
 
 ## Quick-start (Docker — recommended)
 
+### Option A – Pull pre-built image from GHCR (fastest)
+
 ```bash
-cd telegram_bot
+# On your server (Linux VPS / cloud VM):
 
-# 1. Copy and fill in the env file
+# 1. Download the compose file
+mkdir bump-bot && cd bump-bot
+curl -O https://raw.githubusercontent.com/Ghost69-321/memecoin-leaderboard/main/telegram_bot/docker-compose.yml
+curl -O https://raw.githubusercontent.com/Ghost69-321/memecoin-leaderboard/main/telegram_bot/.env.example
+
+# 2. Fill in your credentials
 cp .env.example .env
-#    → set TELEGRAM_BOT_TOKEN and BOT_MASTER_KEY
+nano .env   # set TELEGRAM_BOT_TOKEN and BOT_MASTER_KEY
 
-# 2. Build and run
+# 3. Pull and run
+docker compose pull
+docker compose up -d
+```
+
+### Option B – Build from source
+
+```bash
+git clone https://github.com/Ghost69-321/memecoin-leaderboard.git
+cd memecoin-leaderboard/telegram_bot
+
+cp .env.example .env
+nano .env   # set TELEGRAM_BOT_TOKEN and BOT_MASTER_KEY
+
+# Comment out 'image:' and uncomment 'build:' in docker-compose.yml, then:
 docker compose up -d --build
 ```
 
 The SQLite database is persisted in a Docker volume (`bot_data`) so data
 survives container restarts and upgrades.
+
+### Useful commands
+
+```bash
+docker compose logs -f          # stream logs
+docker compose restart          # restart after config change
+docker compose pull && docker compose up -d   # upgrade to latest image
+docker compose down             # stop (data is safe in the volume)
+```
 
 ---
 

@@ -1,0 +1,78 @@
+name: CI – Bot tests
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "telegram_bot/**"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    paths:
+      - "telegram_bot/**"
+      - ".github/workflows/ci.yml"
+
+jobs:
+  test:
+    name: Lint & unit tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: telegram_bot/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r telegram_bot/requirements.txt
+
+      - name: Syntax check
+        run: |
+          cd telegram_bot
+          python -m py_compile config.py wallet.py storage.py transactions.py bot.py
+          echo "All files compile OK"
+
+      - name: Unit tests
+        env:
+          BOT_MASTER_KEY: ci-test-master-key-abcdef1234567890abcdef
+          DATABASE_PATH: /tmp/ci_test.db
+        run: |
+          cd telegram_bot
+          python -c "
+          import os, config
+          from web3 import Web3
+          from wallet import generate_wallet, encrypt_private_key, decrypt_private_key
+          from cryptography.fernet import InvalidToken
+          import storage
+
+          # wallet
+          addr, pk = generate_wallet()
+          assert addr.startswith('0x') and pk.startswith('0x')
+          enc = encrypt_private_key(pk, 1)
+          assert decrypt_private_key(enc, 1) == pk
+          try:
+              decrypt_private_key(enc, 2)
+              raise AssertionError('cross-user decrypt should fail')
+          except InvalidToken:
+              pass
+
+          # storage
+          storage.init_db()
+          storage.save_user_wallet(1, addr, enc)
+          assert storage.get_user_wallet(1)['address'] == addr
+          storage.save_bump_record(1, '0xTOKEN', 0.01, 0.0001, 'fh', 'sh', 'success')
+          hist = storage.get_bump_history(1)
+          assert hist[0]['status'] == 'success'
+
+          # config
+          assert config.FEE_RECIPIENT_ADDRESS == '0x5D47D3388504824408dBf8943fd6711fEF3cBEfe'
+          assert Web3.is_address(config.FEE_RECIPIENT_ADDRESS)
+          assert config.FEE_PERCENT == 0.01
+
+          print('All unit tests passed.')
+          "
