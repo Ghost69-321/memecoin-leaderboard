@@ -65,7 +65,8 @@ _ROUTER_ABI = [
                     {"internalType": "uint24",  "name": "fee",                 "type": "uint24"},
                     {"internalType": "address", "name": "recipient",           "type": "address"},
                     {"internalType": "uint256", "name": "amountIn",            "type": "uint256"},
-                    {"internalType": "uint256", "name": "amountOutMinimum",    "type": "uint256"},                    {"internalType": "uint160", "name": "sqrtPriceLimitX96",   "type": "uint160"},
+                    {"internalType": "uint256", "name": "amountOutMinimum",    "type": "uint256"},
+                    {"internalType": "uint160", "name": "sqrtPriceLimitX96",   "type": "uint160"},
                 ],
                 "internalType": "struct ISwapRouter.ExactInputSingleParams",
                 "name": "params",
@@ -148,8 +149,6 @@ def send_fee(
     fee_amount_wei: int,
 ) -> str:
     """Send *fee_amount_wei* to FEE_RECIPIENT_ADDRESS. Returns tx hash."""
-    if not FEE_RECIPIENT_ADDRESS:
-        raise RuntimeError("FEE_RECIPIENT_ADDRESS env var is not set")
     w3 = _get_web3()
     account: LocalAccount = Account.from_key(private_key_hex)
     nonce = w3.eth.get_transaction_count(

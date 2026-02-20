@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  bot:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      # Persist the SQLite database across container restarts
+      - bot_data:/app/data
+    environment:
+      - DATABASE_PATH=/app/data/bot_data.db
+    # No ports needed – bot uses Telegram long-polling
+
+volumes:
+  bot_data:

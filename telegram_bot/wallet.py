@@ -8,7 +8,6 @@ This gives every Telegram user a different encryption key so that a
 compromise of one user's record does not expose others.
 """
 import base64
-import os
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes

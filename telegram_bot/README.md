@@ -20,16 +20,25 @@ are covered by the user's deposited ETH.
 
 ---
 
-## Requirements
+## Quick-start (Docker — recommended)
 
-- Python 3.11+
-- A Telegram bot token from [@BotFather](https://t.me/BotFather)
-- A Base-network RPC endpoint (the default `https://mainnet.base.org` works)
-- An EVM address to receive the 1% fee
+```bash
+cd telegram_bot
+
+# 1. Copy and fill in the env file
+cp .env.example .env
+#    → set TELEGRAM_BOT_TOKEN and BOT_MASTER_KEY
+
+# 2. Build and run
+docker compose up -d --build
+```
+
+The SQLite database is persisted in a Docker volume (`bot_data`) so data
+survives container restarts and upgrades.
 
 ---
 
-## Setup
+## Manual Setup (Python)
 
 ### 1. Install dependencies
 
@@ -40,41 +49,31 @@ pip install -r requirements.txt
 
 ### 2. Set environment variables
 
-Create a `.env` file (or export them in your shell):
+Copy `.env.example` to `.env` and fill in the values:
 
 ```dotenv
 # Required
 TELEGRAM_BOT_TOKEN=7123456789:AAFxxxx
 BOT_MASTER_KEY=a-long-random-secret-key-at-least-32-chars
 
-# Optional – defaults to the owner's treasury address below
+# Optional – defaults to the owner's treasury address
 # FEE_RECIPIENT_ADDRESS=0x5D47D3388504824408dBf8943fd6711fEF3cBEfe
 
-# Optional (shown with defaults)
-BASE_RPC_URL=https://mainnet.base.org
-DATABASE_PATH=bot_data.db
+# Optional
+# BASE_RPC_URL=https://mainnet.base.org
+# DATABASE_PATH=bot_data.db
 ```
 
 > **Fee address**: All 1% fees default to the owner's treasury wallet
 > `0x5D47D3388504824408dBf8943fd6711fEF3cBEfe` on Base.
-> Override with the `FEE_RECIPIENT_ADDRESS` env var if needed.
 
-> **Security note**: `BOT_MASTER_KEY` is used to derive per-user encryption
-> keys for stored private keys.  Choose a high-entropy random string and keep
-> it secret.  Losing it means losing access to all stored wallets.
+> **Security**: `BOT_MASTER_KEY` encrypts every user's private key.  Choose a
+> high-entropy random string, keep it secret, and **back it up** — losing it
+> means losing access to all stored wallets.
 
 ### 3. Run
 
 ```bash
-python bot.py
-```
-
-Or with `python-dotenv` for automatic `.env` loading:
-
-```bash
-pip install python-dotenv
-python -c "from dotenv import load_dotenv; load_dotenv()" && python bot.py
-# or simply prefix:
 env $(cat .env | xargs) python bot.py
 ```
 
@@ -90,27 +89,25 @@ env $(cat .env | xargs) python bot.py
    - Calls `exactInputSingle` on the Uniswap V3 SwapRouter02 (deployed on
      Base at `0x2626664c2603336E57B271c5C0b26F421741e481`), swapping ETH
      (wrapped internally) for the target token.
-   - Both transactions are signed locally – the private key never leaves the
+   - Both transactions are signed locally — the private key never leaves the
      process.
-4. Gas fees are paid from the user's wallet and are estimated before the
-   transaction is sent.
+4. Gas fees are paid from the user's wallet and estimated before submission.
 
 ---
 
 ## Security Considerations
 
 - Private keys are encrypted at rest using **Fernet** (AES-128-CBC +
-  HMAC-SHA256). Fernet keys are 32 bytes (256-bit) encoded as URL-safe
-  base64; the AES cipher itself uses 128-bit keys as per the Fernet spec.
-  Each user gets a unique key derived via HKDF-SHA256 from `BOT_MASTER_KEY`.
+  HMAC-SHA256). Each user gets a unique key derived via HKDF-SHA256 from
+  `BOT_MASTER_KEY`.
 - The database (`bot_data.db`) contains only encrypted key material.
-- **Back up `BOT_MASTER_KEY`** – it is required to decrypt stored keys.
+- **Back up `BOT_MASTER_KEY`** — it is required to decrypt stored keys.
 - Run the bot in a trusted environment (VPS, container) with restricted
   file-system access.
 
 ---
 
-## Deployment (systemd)
+## Deployment (systemd alternative)
 
 ```ini
 [Unit]
@@ -119,9 +116,10 @@ After=network.target
 
 [Service]
 WorkingDirectory=/opt/bump-bot/telegram_bot
-EnvironmentFile=/opt/bump-bot/.env
+EnvironmentFile=/opt/bump-bot/telegram_bot/.env
 ExecStart=/usr/bin/python3 bot.py
 Restart=on-failure
+User=botuser
 
 [Install]
 WantedBy=multi-user.target
@@ -130,3 +128,4 @@ WantedBy=multi-user.target
 ```bash
 sudo systemctl enable --now bump-bot
 ```
+
