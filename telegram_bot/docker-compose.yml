@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  bot:
+    # Option A – pull the pre-built image from GHCR (recommended for production)
+    image: ghcr.io/ghost69-321/bump-bot:latest
+    # Option B – build locally from source (uncomment and comment out 'image' above)
+    # build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      # Persist the SQLite database across container restarts
+      - bot_data:/app/data
+    environment:
+      - DATABASE_PATH=/app/data/bot_data.db
+    # No ports needed – bot uses Telegram long-polling
+
+volumes:
+  bot_data:
